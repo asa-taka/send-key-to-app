@@ -10,20 +10,20 @@ func getKeyCode(_ name: String) throws -> CGKeyCode {
   return keyCode
 }
 
-func postKeyUpDownEvent(pid: pid_t, keyName: String, flags: CGEventFlags) throws {
+func postKeyUpDownEvent(pid: pid_t, keyName: String, flags: CGEventFlags, durationSec: Float) throws
+{
   let keyCode = try getKeyCode(keyName)
 
   let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
   keyDown?.flags = flags
   keyDown?.postToPid(pid)
-  usleep(1000)  // sometimes required, but why...?
+  usleep(UInt32(durationSec * 1000_000))  // sometimes required, but why...?
 
   let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
   keyUp?.postToPid(pid)
-  usleep(1000)  // sometimes required, but why...?
 }
 
-func postKeyConvination(pid: pid_t, keyConvination: String) throws {
+func postKeyConvination(pid: pid_t, keyConvination: String, intervalSec: Float) throws {
   let keys = keyConvination.components(separatedBy: "+")
   var mask: CGEventFlags = []
 
@@ -40,12 +40,12 @@ func postKeyConvination(pid: pid_t, keyConvination: String) throws {
   }
 
   if let lastKey = keys.last {
-    try postKeyUpDownEvent(pid: pid, keyName: lastKey, flags: mask)
+    try postKeyUpDownEvent(pid: pid, keyName: lastKey, flags: mask, durationSec: intervalSec)
   }
 }
 
-func postKeyStrokes(pid: pid_t, keyStrokes: [String]) throws {
+func postKeyStrokes(pid: pid_t, keyStrokes: [String], intervalSec: Float) throws {
   for k in keyStrokes {
-    try postKeyConvination(pid: pid, keyConvination: k)
+    try postKeyConvination(pid: pid, keyConvination: k, intervalSec: intervalSec)
   }
 }

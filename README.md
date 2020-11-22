@@ -8,15 +8,16 @@ to send a key stroke to a background application.
 ## Usage
 
 ```sh
-USAGE: send-key-to-app [--pid <pid>] [--app-name <app-name>] [<keys> ...]
+USAGE: send-key-to-app [--pid <pid>] [--app-name <name>] [--interval <sec>] [<keys> ...]
 
 ARGUMENTS:
-  <keys>                  a key or key with modifiers (eg: a, cmd+a, alt+shift+e)
+  <keys>                  A key or a key with modifiers (eg: a, cmd+a, alt+shift+e).
 
 OPTIONS:
-  -p, --pid <pid>         specify target by pid
-  -a, --app-name <app-name>
-                          specify target by an executable file name (not a path)
+  -p, --pid <pid>         Specify target by pid.
+  -a, --app-name <name>   Specify target by an executable file name (not a path).
+  -t, --interval <sec>    Time duration(seconds) per each key input.
+                          Some application requires appropreate this value to detect keys and action. (default: 0.01)
   -h, --help              Show help information.
 ```
 

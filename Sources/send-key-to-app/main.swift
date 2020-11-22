@@ -9,21 +9,40 @@ enum AppError: Error {
 
 struct SendKeyToApp: ParsableCommand {
   static let configuration = CommandConfiguration(
-    abstract: "Send key strokes to specific application."
+    abstract: "Send key strokes to a specific application."
   )
 
-  @Option(name: .shortAndLong, help: "specify target by pid")
+  @Option(name: .shortAndLong, help: "Specify target by pid.")
   var pid: pid_t?
 
-  @Option(name: .shortAndLong, help: "specify target by an executable file name (not a path)")
+  @Option(
+    name: .shortAndLong,
+    help:
+      ArgumentHelp(
+        "Specify target by an executable file name (not a path).",
+        valueName: "name"
+      )
+  )
   var appName: String?
 
-  @Argument(help: "a key or key with modifiers (eg: a, cmd+a, alt+shift+e)")
+  @Option(
+    name: [.customShort("t"), .long],
+    help: ArgumentHelp(
+      """
+      Time duration(seconds) per each key input.
+      Some application requires appropreate this value to detect keys and action.
+      """,
+      valueName: "sec"
+    )
+  )
+  var interval: Float = 0.01
+
+  @Argument(help: "A key or a key with modifiers (eg: a, cmd+a, alt+shift+e).")
   var keys: [String]
 
   func validate() throws {
     guard pid != nil || appName != "" else {
-      throw ValidationError("Ether <pid> or <app-name> is required")
+      throw ValidationError("Ether <pid> or <app-name> is required.")
     }
   }
 
@@ -40,7 +59,7 @@ struct SendKeyToApp: ParsableCommand {
   }
 
   mutating func run() throws {
-    try postKeyStrokes(pid: try getPid(), keyStrokes: keys)
+    try postKeyStrokes(pid: try getPid(), keyStrokes: keys, intervalSec: interval)
   }
 }
 
