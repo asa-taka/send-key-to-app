@@ -10,11 +10,11 @@ if args.count != 3 {
 }
 
 let appName = args[1]
-let keyCode = UInt16(args[2]) ?? 0
+let keyCode = CGKeyCode(args[2]) ?? 0
 
 let src = CGEventSource(stateID: CGEventSourceStateID.combinedSessionState)
 
-func sendKeyStroke(pid: pid_t, keyCode: UInt16) {
+func sendKeyStroke(pid: pid_t, keyCode: CGKeyCode) {
   let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
   keyUp?.postToPid(pid)
   usleep(1000)  // required, but why...?
