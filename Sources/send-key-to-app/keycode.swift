@@ -135,3 +135,25 @@ let keyNameToCode: [String: CGKeyCode] = [
   "keypad8": 0x5B,
   "keypad9": 0x5C,
 ]
+
+func getKeyCode(_ name: String) throws -> CGKeyCode {
+  guard let keyCode = keyNameToCode[name.lowercased()] else {
+    throw AppError.unsupportedKeyName(name)
+  }
+  return keyCode
+}
+
+let modifierKeyCodeToFlag: [CGKeyCode: CGEventFlags] = [
+  0x38: CGEventFlags.maskShift,
+  0x37: CGEventFlags.maskCommand,
+  0x3B: CGEventFlags.maskControl,
+  0x3A: CGEventFlags.maskAlternate,
+]
+
+func getModifierKeyFlag(_ name: String) throws -> CGEventFlags {
+  let keyCode = try getKeyCode(name)
+  guard let flag = modifierKeyCodeToFlag[keyCode] else {
+    throw AppError.unsupportedModifierKeyName(name)
+  }
+  return flag
+}

@@ -3,13 +3,6 @@ import Foundation
 
 let src = CGEventSource(stateID: CGEventSourceStateID.hidSystemState)
 
-func getKeyCode(_ name: String) throws -> CGKeyCode {
-  guard let keyCode = keyNameToCode[name.lowercased()] else {
-    throw AppError.unsupportedKeyName(name)
-  }
-  return keyCode
-}
-
 class KeySender {
   var keyIntervalUsec: UInt32
   var pid: pid_t
@@ -33,18 +26,11 @@ class KeySender {
 
   func postKeyCombination(_ keyCombination: String) throws {
     let keys = keyCombination.components(separatedBy: "+")
-    var mask: CGEventFlags = []
-
     let modifierKeys = keys[..<(keys.count - 1)]
+
+    var mask: CGEventFlags = []
     for k in modifierKeys {
-      switch k {
-      case "shift": mask.insert(CGEventFlags.maskShift)
-      case "cmd": mask.insert(CGEventFlags.maskCommand)
-      case "opt": mask.insert(CGEventFlags.maskAlternate)
-      case "ctl": mask.insert(CGEventFlags.maskControl)
-      default:
-        throw AppError.unsupportedModifierKeyName(k)
-      }
+      mask.insert(try getModifierKeyFlag(k))
     }
 
     if let lastKey = keys.last {
