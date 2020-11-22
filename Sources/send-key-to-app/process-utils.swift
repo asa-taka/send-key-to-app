@@ -1,11 +1,11 @@
 import AppKit
 
-func getPidByName(_ executableFileName: String) -> pid_t? {
+func getPidByName(_ executableFileName: String) throws -> pid_t {
   let apps = NSWorkspace.shared.runningApplications
   for a in apps {
     if a.executableURL?.lastPathComponent == executableFileName {
       return a.processIdentifier
     }
   }
-  return nil
+  throw AppError.targetProcessNotFound("executableFileName: \(executableFileName)")
 }

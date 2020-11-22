@@ -47,15 +47,10 @@ struct SendKeyToApp: ParsableCommand {
   }
 
   func getPid() throws -> pid_t {
-    if let appName = appName {
-      if let pid = getPidByName(appName) {
-        return pid
-      } else {
-        throw AppError.targetProcessNotFound("executableFileName: \(appName)")
-      }
-    } else {
+    guard let appName = appName else {
       return pid!
     }
+    return try getPidByName(appName)
   }
 
   mutating func run() throws {
