@@ -2,24 +2,60 @@ import AppKit
 import Foundation
 
 let args = CommandLine.arguments
-if args.count != 3 {
-  print("\(args[0]) [APP_NAME] [KEY_CODE]")
+if args.count < 3 {
+  print("\(args[0]) APP_NAME [KEY KEY ...]")
   print("APP_NAME: an executable file name (not a path)")
-  print("KEY_CODE: a number such as 123(LEFT), 124(RIGHT), ...")
+  print("KEY:      a key or key combination (e.g. a, cmd+a, alt+shift+e)")
   exit(1)
 }
 
 let appName = args[1]
-let keyCode = CGKeyCode(args[2]) ?? 0
+let keyStrokes = Array(args[2...])
 
-let src = CGEventSource(stateID: CGEventSourceStateID.combinedSessionState)
+let src = CGEventSource(stateID: CGEventSourceStateID.hidSystemState)
 
-func sendKeyStroke(pid: pid_t, keyCode: CGKeyCode) {
-  let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
-  keyUp?.postToPid(pid)
-  usleep(1000)  // required, but why...?
-  let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
-  keyDown?.postToPid(pid)
+func getKeyCode(name: String) -> CGKeyCode? {
+  return keyNameToCode[name.lowercased()]
+}
+
+func postKeyUpDownEvent(pid: pid_t, keyName: String, flags: CGEventFlags) {
+  if let keyCode = getKeyCode(name: keyName) {
+    let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
+    keyDown?.flags = flags
+    keyDown?.postToPid(pid)
+    usleep(1000)  // sometimes required, but why...?
+
+    let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
+    keyUp?.postToPid(pid)
+    usleep(1000)  // sometimes required, but why...?
+  } else {
+    print("unsupported key name: \(keyName)")
+  }
+}
+
+func postKeyConvination(pid: pid_t, keyConvination: String) {
+  let keys = keyConvination.components(separatedBy: "+")
+  var mask: CGEventFlags = []
+
+  for k in keys {
+    switch k {
+    case "shift": mask.insert(CGEventFlags.maskShift)
+    case "cmd": mask.insert(CGEventFlags.maskCommand)
+    case "opt": mask.insert(CGEventFlags.maskAlternate)
+    case "ctl": mask.insert(CGEventFlags.maskControl)
+    default: break
+    }
+  }
+
+  if let lastKey = keys.last {
+    postKeyUpDownEvent(pid: pid, keyName: lastKey, flags: mask)
+  }
+}
+
+func postKeyStrokes(pid: pid_t, keyStrokes: [String]) {
+  for k in keyStrokes {
+    postKeyConvination(pid: pid, keyConvination: k)
+  }
 }
 
 func getPidByName(executableFileName: String) -> pid_t? {
@@ -33,7 +69,7 @@ func getPidByName(executableFileName: String) -> pid_t? {
 }
 
 if let pid = getPidByName(executableFileName: appName) {
-  sendKeyStroke(pid: pid, keyCode: keyCode)
+  postKeyStrokes(pid: pid, keyStrokes: keyStrokes)
 } else {
   print("executable '\(appName)' not found in user processes")
 }
