@@ -1,5 +1,5 @@
-import Foundation
 import AppKit
+import Foundation
 
 let args = CommandLine.arguments
 if args.count != 3 {
@@ -17,12 +17,12 @@ let src = CGEventSource(stateID: CGEventSourceStateID.combinedSessionState)
 func sendKeyStroke(pid: pid_t, keyCode: UInt16) {
   let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
   keyUp?.postToPid(pid)
-  usleep(1000) // required, but why...?
+  usleep(1000)  // required, but why...?
   let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
   keyDown?.postToPid(pid)
 }
 
-func getPidByName(executableFileName: String) -> Optional<pid_t> {
+func getPidByName(executableFileName: String) -> pid_t? {
   let apps = NSWorkspace.shared.runningApplications
   for a in apps {
     if a.executableURL?.lastPathComponent == executableFileName {
