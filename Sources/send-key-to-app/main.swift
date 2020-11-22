@@ -59,7 +59,8 @@ struct SendKeyToApp: ParsableCommand {
   }
 
   mutating func run() throws {
-    try postKeyStrokes(pid: try getPid(), keyStrokes: keys, intervalSec: interval)
+    let sender = KeySender(pid: try getPid(), keyIntervalUsec: UInt32(interval * 1000_000))
+    try sender.postKeyStrokes(keys)
   }
 }
 

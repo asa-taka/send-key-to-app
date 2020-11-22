@@ -10,42 +10,51 @@ func getKeyCode(_ name: String) throws -> CGKeyCode {
   return keyCode
 }
 
-func postKeyUpDownEvent(pid: pid_t, keyName: String, flags: CGEventFlags, durationSec: Float) throws
-{
-  let keyCode = try getKeyCode(keyName)
+class KeySender {
+  var keyIntervalUsec: UInt32
+  var pid: pid_t
 
-  let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
-  keyDown?.flags = flags
-  keyDown?.postToPid(pid)
-  usleep(UInt32(durationSec * 1000_000))  // sometimes required, but why...?
+  init(pid: pid_t, keyIntervalUsec: UInt32) {
+    self.pid = pid
+    self.keyIntervalUsec = keyIntervalUsec
+  }
 
-  let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
-  keyUp?.postToPid(pid)
-}
+  func postKeyUpDownEvent(_ keyName: String, flags: CGEventFlags) throws {
+    let keyCode = try getKeyCode(keyName)
 
-func postKeyConvination(pid: pid_t, keyConvination: String, intervalSec: Float) throws {
-  let keys = keyConvination.components(separatedBy: "+")
-  var mask: CGEventFlags = []
+    let keyDown = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true)
+    keyDown?.flags = flags
+    keyDown?.postToPid(pid)
+    usleep(self.keyIntervalUsec)
 
-  let modifierKeys = keys[..<(keys.count - 1)]
-  for k in modifierKeys {
-    switch k {
-    case "shift": mask.insert(CGEventFlags.maskShift)
-    case "cmd": mask.insert(CGEventFlags.maskCommand)
-    case "opt": mask.insert(CGEventFlags.maskAlternate)
-    case "ctl": mask.insert(CGEventFlags.maskControl)
-    default:
-      throw AppError.unsupportedModifierKeyName(k)
+    let keyUp = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
+    keyUp?.postToPid(pid)
+  }
+
+  func postKeyCombination(_ keyCombination: String) throws {
+    let keys = keyCombination.components(separatedBy: "+")
+    var mask: CGEventFlags = []
+
+    let modifierKeys = keys[..<(keys.count - 1)]
+    for k in modifierKeys {
+      switch k {
+      case "shift": mask.insert(CGEventFlags.maskShift)
+      case "cmd": mask.insert(CGEventFlags.maskCommand)
+      case "opt": mask.insert(CGEventFlags.maskAlternate)
+      case "ctl": mask.insert(CGEventFlags.maskControl)
+      default:
+        throw AppError.unsupportedModifierKeyName(k)
+      }
+    }
+
+    if let lastKey = keys.last {
+      try postKeyUpDownEvent(lastKey, flags: mask)
     }
   }
 
-  if let lastKey = keys.last {
-    try postKeyUpDownEvent(pid: pid, keyName: lastKey, flags: mask, durationSec: intervalSec)
-  }
-}
-
-func postKeyStrokes(pid: pid_t, keyStrokes: [String], intervalSec: Float) throws {
-  for k in keyStrokes {
-    try postKeyConvination(pid: pid, keyConvination: k, intervalSec: intervalSec)
+  func postKeyStrokes(_ keyStrokes: [String]) throws {
+    for k in keyStrokes {
+      try postKeyCombination(k)
+    }
   }
 }
