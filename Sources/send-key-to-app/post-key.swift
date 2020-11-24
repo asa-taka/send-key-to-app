@@ -24,6 +24,7 @@ class KeySender {
     keyUp?.postToPid(pid)
   }
 
+  // parse modifier+key
   func postKeyCombination(_ keyCombination: String) throws {
     let keys = keyCombination.components(separatedBy: "+")
     let modifierKeys = keys[..<(keys.count - 1)]
@@ -33,14 +34,28 @@ class KeySender {
       mask.insert(try getModifierKeyFlag(k))
     }
 
-    if let lastKey = keys.last {
-      try postKeyUpDownEvent(lastKey, flags: mask)
+    if let mainKey = keys.last {
+      try postKeyUpDownEvent(mainKey, flags: mask)
+    }
+  }
+
+  // parse key=count
+  func postKeystroke(_ keyStroke: String) throws {
+    let keyAndCount = keyStroke.components(separatedBy: "^")
+    let k = keyAndCount[0]
+
+    guard let n = keyAndCount.count == 2 ? Int(keyAndCount[1]) : 1 else {
+      throw AppError.syntaxError("could not parse repeat times: \(keyStroke)")
+    }
+
+    for _ in 1...n {
+      try postKeyCombination(k)
     }
   }
 
   func postKeyStrokes(_ keyStrokes: [String]) throws {
     for k in keyStrokes {
-      try postKeyCombination(k)
+      try postKeystroke(k)
     }
   }
 }

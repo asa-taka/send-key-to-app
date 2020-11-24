@@ -5,6 +5,7 @@ enum AppError: Error {
   case targetProcessNotFound(_ target: String)
   case unsupportedKeyName(_ keyName: String)
   case unsupportedModifierKeyName(_ keyName: String)
+  case syntaxError(_ reason: String)
 }
 
 struct SendKeyToApp: ParsableCommand {

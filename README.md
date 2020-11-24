@@ -25,15 +25,18 @@ Simplly, following command prints `Hello` on your `Terminal` app,
 if you have launched `Terminal` app.
 
 ```sh
-send-key-to-app -a Terminal shift+h e l l o
+send-key-to-app -a Terminal shift+h e l^2 o
 ```
 
 And followings are more practicial examples.
 
 ```sh
 send-key-to-app -a Kindle left      # let background Kindle to navigate next page
-send-key-to-app -a Kindle left left # futher more pages...
-send-key-to-app -a Kindle right     # and back to prev page
+send-key-to-app -a Kindle left left # futher more pages
+send-key-to-app -a Kindle right     # ...and back to prev page
+
+send-key-to-app -a Safari opt+down  # let Safari to page down
+send-key-to-app -a Safari down^5    # ...or a little page down 5 times
 
 send-key-to-app -a Twitter cmd+up   # let Twitter scroll up toward the top
 ```
