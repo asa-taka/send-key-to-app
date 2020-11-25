@@ -1,9 +1,9 @@
 # send-key-to-app
 
-A simple macOS CLI utility, `send-key-to-app` sends a key stroke to another application.
+A simple macOS CLI utility, `send-key-to-app` sends key strokes to another application.
 It assumes to be used with key configuration utility softwares like
 [Karabiner-Elements](https://github.com/pqrs-org/Karabiner-Elements),
-to send a key stroke to a background application.
+to send key strokes to a background application.
 
 ## Usage
 
@@ -21,7 +21,7 @@ OPTIONS:
   -h, --help              Show help information.
 ```
 
-Simplly, following command prints `Hello` on your `Terminal` app,
+Simplly, the following command prints `Hello` on your `Terminal` app,
 if you have launched `Terminal` app.
 
 ```sh
@@ -44,6 +44,22 @@ send-key-to-app -a Twitter cmd+up   # let Twitter scroll up toward the top
 Once you have configured to bind these commands to some keys,
 it works suitable to navigate your reference ePubs durling coding
 as keeping focus on your editor or terminal.
+
+### Syntax
+
+`modifier+modifier+key^n`
+
+sends `modifier+modifier+key` `n` times.
+
+See [keycode.swift](./Sources/send-key-to-app/keycode.swift)
+for available key names.
+
+### Available modifier keys
+
+- `command`, `cmd`
+- `shift`
+- `option`, `opt`, `alt`
+- `control`, `ctl`
 
 ## Build and Install
 
